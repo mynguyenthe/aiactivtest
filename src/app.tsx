@@ -1,30 +1,28 @@
 import * as React from "react"
 import { useCallback, useEffect, useState } from "react"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { ItemCheck, ItemExpand, TreeDataItem } from "./types"
 import Tree from "./components/Tree/Tree"
-import { CheckboxState, ExpandState } from "./constants"
-import { getTreeData } from "./components/Tree/utils"
+import { ExpandState } from "./constants"
+import { RootState } from "./redux/store"
+import { setCheckedItems, setExpandedItems } from "./redux/tree/actions"
 import "./app.scss"
-import allActions from "./redux/actions"
 
 const App = () => {
+  const dispatch = useDispatch()
+  const { treeData, checkedItems, expandedItems } = useSelector((state: RootState) => state.tree)
   const [filterText, setFilterText] = useState<string>("")
-  const [treeData, setTreeData] = useState<TreeDataItem[]>([])
   const [filteredItems, setFilteredItems] = useState<TreeDataItem[]>([])
-  const [checkedItems, setCheckedItems] = useState<ItemCheck[]>([])
-  const [expandedItems, setExpandedItems] = useState<ItemExpand[]>([])
   const [expandedFilteredItems, setExpandedFilteredItems] = useState<ItemExpand[]>([])
 
-  const dispatch = useDispatch()
   const handleCheckedItems = (checkedItems: ItemCheck[]) => {
-    dispatch(allActions.treeDataActions.setCheckedTreeItems(checkedItems))
-    setCheckedItems(checkedItems)
+    dispatch(setCheckedItems(checkedItems))
+    //setCheckedItems(checkedItems)
   }
 
   const handleExpandedItems = (expandedItems: ItemExpand[]) => {
     setTimeout(() => {
-      setExpandedItems(expandedItems)
+      dispatch(setExpandedItems(expandedItems))
     }, 100)
   }
 
@@ -67,27 +65,11 @@ const App = () => {
   }
 
   useEffect(() => {
-    const treeData = getTreeData()
-
-    setTreeData(treeData)
+    // set default filtered item
     setFilteredItems(treeData)
-    //set default unselected item
-    const uncheckItems = treeData.map(i => ({
-      id: i.id,
-      state: CheckboxState.UNCHECKED
-    }))
-
-    setCheckedItems(uncheckItems)
-
-    //set default expanded item
-    const collapseItems = treeData.map(i => ({
-      id: i.id,
-      state: ExpandState.COLLAPSE
-    }))
-    setExpandedItems(collapseItems)
 
     //set default expanded filtered item
-    setExpandedFilteredItems(collapseItems)
+    setExpandedFilteredItems(expandedItems)
   }, [])
 
   return (
